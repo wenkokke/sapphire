@@ -3,30 +3,30 @@ from itertools import product
 from operator import add, mul
 from z3 import Real, RealVar, If
 
-def exp(x):
+def LinExp(x):
     return If(x <= -1, 0.00001, If(x >= 1, 5.898 * x - 3.898, x + 1))
 
-def norm(X):
+def Norm(X):
     return map(lambda x: x / sum(X), X)
 
-def softmax(X):
-    return norm(map(exp, X))
+def LinSoftmax(X):
+    return Norm(map(LinExp, X))
 
-def sigmoid(x):
+def LinSigmoid(x):
     return If(x < 0, 0, If(x > 1, 1, 0.25 * x + 0.5))
 
-def relu(x):
+def ReLU(x):
     return If(x > 0, x, 0)
 
-def run_activation(activation, X):
+def Activation(activation, X):
     return list({
         'linear'  : X,
-        'relu'    : map(relu, X),
-        'sigmoid' : map(sigmoid, X),
-        'softmax' : softmax(X)
+        'relu'    : map(ReLU, X),
+        'sigmoid' : map(LinSigmoid, X),
+        'softmax' : LinSoftmax(X)
     }[activation])
 
-def dot(X, W):
+def Dot(X, W):
     return sum(map(mul, X, W))
 
 def NN(model):
@@ -39,7 +39,6 @@ def NN(model):
         if len(params) <= 0: break
 
         config = layer.get_config()
-        activation = config['activation']
         rows, cols = params[0].shape
         weights = params[0].tolist()
         biases = params[1].tolist()
@@ -51,9 +50,9 @@ def NN(model):
 
         # Compute output from input and weights:
         I = H[-1]
-        O = [ dot(I, [ RealVal(r) for r in row ]) + bias
+        O = [ Dot(I, [ RealVal(r) for r in row ]) + bias
               for row, bias in zip(weights, biases) ]
-        O = run_activation(activation, O)
+        O = Activation(config['activation'], O)
         H.append(O)
 
     Y = H.pop()
