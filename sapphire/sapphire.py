@@ -1,6 +1,6 @@
 from functools import reduce
-from operator import add, mul
-from z3 import Real, RealVar, If
+from operator  import mul
+from z3        import *
 
 def LinExp(x):
     return If(x <= -1, 0.00001, If(x >= 1, 5.898 * x - 3.898, x + 1))
