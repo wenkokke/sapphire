@@ -1,0 +1,2 @@
+tensorflow>=2.1.0,<3
+z3-solver>=4.8.7.0,<5
