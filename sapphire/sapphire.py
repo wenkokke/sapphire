@@ -1,5 +1,4 @@
 from functools import reduce
-from itertools import product
 from operator import add, mul
 from z3 import Real, RealVar, If
 
