@@ -2,6 +2,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow.keras as keras
 from sklearn.model_selection import train_test_split
@@ -22,6 +23,13 @@ domain  = np.append(truthy, falsy)
 x       = np.array([ (x1, x2) for x1 in domain for x2 in domain ])
 y       = np.array([ andy(x1, x2) for x1, x2 in x ])
 
+# "0.7" is depend on epsilon ...
+y[(0.7<x[:,0]) & (0.7<x[:,1])] = 1
+
+plt.figure()
+plt.scatter(x[:, 0], x[:, 1], c=y, alpha=0.5)
+plt.show()
+
 
 # inputs = keras.Input(shape=(2,))
 # layer_1 = keras.layers.Dense(2, activation='relu')(inputs)
@@ -30,16 +38,14 @@ y       = np.array([ andy(x1, x2) for x1, x2 in x ])
 
 # Train network
 model = keras.Sequential([
-    keras.layers.Dense(2, activation='relu', input_shape=(2,)),
-    keras.layers.Dropout(rate=0.1),
-    keras.layers.Dense(1, activation='sigmoid')
+    keras.layers.Dense(1, activation='sigmoid', input_shape=(2,)),
 ])
 
 model.compile(optimizer='adam',
               loss='binary_crossentropy',
               metrics=['accuracy'])
 
-model.fit(x, y, epochs=5)
+model.fit(x, y, epochs=10)
 model.summary()
 
 # Test network
@@ -58,4 +64,7 @@ s.add(ForAll(X, Implies(And([Truthy(X[0]), Falsy(X[1])]),  Y[0] == 0)))
 s.add(ForAll(X, Implies(And([Falsy(X[0]),  Falsy(X[1])]),  Y[0] == 0)))
 
 print(s.check())
-print(s.sexpr())
+# print(s.sexpr())
+
+
+
