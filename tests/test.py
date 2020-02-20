@@ -23,18 +23,24 @@ x       = np.array([ (x1, x2) for x1 in domain for x2 in domain ])
 y       = np.array([ andy(x1, x2) for x1, x2 in x ])
 
 
+# inputs = keras.Input(shape=(2,))
+# layer_1 = keras.layers.Dense(2, activation='relu')(inputs)
+# predictions = keras.layers.Dense(1, activation='sigmoid')(layer_1)
+# model = keras.Model(inputs=inputs, outputs=predictions)
+
 # Train network
 model = keras.Sequential([
-    keras.layers.Dense(1, activation='sigmoid', input_shape=(2,))
+    keras.layers.Dense(2, activation='relu', input_shape=(2,)),
+    keras.layers.Dropout(rate=0.1),
+    keras.layers.Dense(1, activation='sigmoid')
 ])
 
 model.compile(optimizer='adam',
               loss='binary_crossentropy',
               metrics=['accuracy'])
 
-model.fit(x, y, epochs=10)
+model.fit(x, y, epochs=5)
 model.summary()
-
 
 # Test network
 Epsilon = RealVal(0.1)

@@ -8,10 +8,12 @@ def NN(model):
     X = None
     H = []
     for layer in model.layers:
+        # print(layer)
         params = layer.get_weights()
+        # print(params)
 
         # Ignore layers without weights:
-        if len(params) <= 0: break
+        if len(params) <= 0: continue
 
         config = layer.get_config()
         rows, cols = params[0].shape
