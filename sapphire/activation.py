@@ -34,19 +34,17 @@ def relu(x):
 def lin(f, x_min, x_max, num=3):
     """Approximates the function 'f' between 'x_min' and 'x_max' using 'num' line segments."""
     X = np.linspace(start=x_min, stop=x_max, num=num+1)
-    Y = tuple(map(f, X))
-    M = tuple(map(_slope, X, Y, X[1:], Y[1:]))
-    N = tuple(map(_intercept, X[1:], Y[1:], M))
+    Y = [f(x) for x in X]
+    M = [_slope(x1, y1, x2, y2) for x1, y1, x2, y2 in zip(X, Y, X[1:], Y[1:])]
+    N = [_intercept(x, y, m) for x, y, m in zip(X[1:], Y[1:], M)]
     *M, last_m = M
     *N, last_n = N
     return lambda x:\
         functools.reduce(_revapp,
-                         reversed(tuple(map(functools.partial(_seg,x), X[1:], M, N))),
+                         [lambda rest: z3.If(x <= x_max, x * m + n, rest)
+                          for x_max, m, n
+                          in reversed(list(zip(X[1:], M, N)))],
                          x * last_m + last_n)
-
-def _seg(x, x_max, m, n):
-    """Computes a line segment up to 'x_max', abstracted over the remainder 'rest'."""
-    return lambda rest: z3.If(x <= x_max, x * m + n, rest)
 
 def _revapp(x, f):
     """Reversed function application."""
