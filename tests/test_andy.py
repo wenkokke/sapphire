@@ -5,9 +5,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from functools import partial
 import matplotlib.pyplot as plt
 import numpy as np
+import operator
 import tensorflow.keras as keras
 from z3 import *
 from sapphire import *
+
 
 def andy(X, epsilon):
     """Boolean AND gate lifted to floating point numbers."""
@@ -49,23 +51,54 @@ def test_andy():
                   loss='binary_crossentropy',
                   metrics=['accuracy'])
     model.fit(x_train, y_train, epochs=20)
-
+    
     # Verify network
     Epsilon = RealVal(0.2)
-
+    
     def Truthy(x): return And([1 - Epsilon <= x, x <= 1 + Epsilon])
     def Falsey(x): return And([0 - Epsilon <= x, x <= 0 + Epsilon])
     def Andy(x1, x2): return If(And([Truthy(x1), Truthy(x2)]), 1, 0)
-
+    
     X, Y = NN(model)
-
+    
     s = Solver()
     s.add(ForAll(X, Implies(And([Truthy(X[0]), Truthy(X[1])]), Y[0] > 0.5)))
     s.add(ForAll(X, Implies(And([Falsey(X[0]), Truthy(X[1])]), Y[0] < 0.5)))
     s.add(ForAll(X, Implies(And([Truthy(X[0]), Falsey(X[1])]), Y[0] < 0.5)))
     s.add(ForAll(X, Implies(And([Falsey(X[0]), Falsey(X[1])]), Y[0] < 0.5)))
-
+    
     assert s.check() == sat
 
+
+def test_andy_2():
+
+    # Train network
+    x_train, y_train = mk_data(epsilon=0.25)
+    model = keras.Sequential([
+        keras.layers.Dense(1, activation='sigmoid', input_shape=(2,)),
+    ])
+    model.compile(optimizer='adam',
+                  loss='binary_crossentropy',
+                  metrics=['accuracy'])
+    model.fit(x_train, y_train, epochs=15)
+    
+    def squared_euclidean_dist(x, x_prime):
+        return sum(map(lambda x: x * x, map(operator.sub, x, x_prime)))
+    
+    def Truthy(x, x_prime, epsilon):
+        return z3.If(
+            squared_euclidean_dist(x, x_prime) <= z3.RealVal(epsilon),
+            True, False)
+    
+    x_prime = [1.0, 1.0]
+    
+    X, Y = NN(model)
+    
+    s = z3.Solver()
+    s.add(z3.ForAll(X, z3.Implies(Truthy(X, x_prime, 0.10), Y[0]>0.5)))
+    
+    assert s.check() == sat
+    
 if __name__ == '__main__':
     test_andy()
+    test_andy_2()
