@@ -31,7 +31,7 @@ def relu(x):
     """Rectified linear unit."""
     return z3.z3.If(x > 0, x, 0)
 
-def lin(f, x_min, x_max, num=3, ite=z3.If):
+def lin(f, x_min, x_max, num=3, ite=None):
     """Approximates the function 'f' between 'x_min' and 'x_max' using 'num' line segments."""
     # If None is passed, evaluate as a Python function
     if ite is None: ite = _ite
