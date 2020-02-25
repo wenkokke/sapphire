@@ -1,6 +1,7 @@
-from functools import partial, reduce
+import operator
+import functools
 import numpy as np
-from z3 import *
+import z3
 
 def activation(a, X):
     return list({
@@ -12,7 +13,7 @@ def activation(a, X):
 
 def linexp(x):
     """Linear approximation of the exponential function."""
-    return If(x <= -1, 0.00001, If(x >= 1, 5.898 * x - 3.898, x + 1))
+    return z3.If(x <= -1, 0.00001, z3.If(x >= 1, 5.898 * x - 3.898, x + 1))
 
 def norm(X):
     """Normalisation."""
@@ -24,11 +25,11 @@ def linsoftmax(X):
 
 def linsigmoid(x):
     """Linear approximation of the Sigmoid function."""
-    return If(x < 0, 0, If(x > 1, 1, 0.25 * x + 0.5))
+    return z3.If(x < 0, 0, z3.If(x > 1, 1, 0.25 * x + 0.5))
 
 def relu(x):
     """Rectified linear unit."""
-    return If(x > 0, x, 0)
+    return z3.z3.If(x > 0, x, 0)
 
 def lin(f, x_min, x_max, num=3):
     """Approximates the function 'f' between 'x_min' and 'x_max' using 'num' line segments."""
@@ -39,13 +40,13 @@ def lin(f, x_min, x_max, num=3):
     *M, last_m = M
     *N, last_n = N
     return lambda x:\
-        reduce(_revapp,
-               reversed(tuple(map(partial(_seg,x), X[1:], M, N))),
-               x * last_m + last_n)
+        functools.reduce(_revapp,
+                         reversed(tuple(map(functools.partial(_seg,x), X[1:], M, N))),
+                         x * last_m + last_n)
 
 def _seg(x, x_max, m, n):
     """Computes a line segment up to 'x_max', abstracted over the remainder 'rest'."""
-    return lambda rest: If(x <= x_max, x * m + n, rest)
+    return lambda rest: z3.If(x <= x_max, x * m + n, rest)
 
 def _revapp(x, f):
     """Reversed function application."""
@@ -58,3 +59,11 @@ def _slope(x1, y1, x2, y2):
 def _intercept(x, y, m):
     """Computes the intercept for a linear function with slope 'm' given a point 'p' on the function."""
     return y - m * x
+
+def eval_lin(f,x):
+    """Evaluates a linear approximation, created by 'lin', at a specific input."""
+    return _rational(str(z3.simplify(f(z3.RealVal(x)))))
+
+def _rational(s):
+    """Parses a rational number, e.g., '12/3'."""
+    return operator.truediv(*map(float,s.split('/')))
