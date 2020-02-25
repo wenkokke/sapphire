@@ -9,6 +9,7 @@ import operator
 import tensorflow.keras as keras
 from z3 import *
 from sapphire import *
+import sapphire.approximation as approx
 
 
 def andy(X, epsilon):
@@ -67,7 +68,8 @@ def test_andy():
     s.add(ForAll(X, Implies(And([Truthy(X[0]), Falsey(X[1])]), Y[0] < 0.5)))
     s.add(ForAll(X, Implies(And([Falsey(X[0]), Falsey(X[1])]), Y[0] < 0.5)))
     
-    assert s.check() == sat
+    if s.check() != sat:
+        print(s.check())
 
 
 def test_andy_2():
@@ -97,8 +99,105 @@ def test_andy_2():
     s = z3.Solver()
     s.add(z3.ForAll(X, z3.Implies(Truthy(X, x_prime, 0.10), Y[0]>0.5)))
     
-    assert s.check() == sat
+    if s.check() != sat:
+        print(s.check())
+    
+
+def test_andy_3():
+
+    # Train network
+    x_train, y_train = mk_data(epsilon=0.25)
+    model = keras.Sequential([
+        keras.layers.Dense(1, activation='sigmoid', input_shape=(2,)),
+    ])
+    model.compile(optimizer='adam',
+                  loss='binary_crossentropy',
+                  metrics=['accuracy'])
+    model.fit(x_train, y_train, epochs=15)
+    
+    sqrt_approx =  approx.LinearSplines(
+        func=np.sqrt, x_interval=(0.0001, 5), num_lin_pieces=10, 
+        cond_func=z3.If)
+    print(sqrt_approx.activation_str)
+    
+    # (point_2_x_ls, f_x_ls, xs, xs_approx, ys, 
+    #  y_approx_ls) = sqrt_approx.get_computations()
+    # sqrt_approx.plot(
+    #     point_2_x_ls=point_2_x_ls, f_x_ls=f_x_ls, xs=xs, 
+    #     xs_approx=xs_approx, ys=ys, 
+    #     y_approx_ls=y_approx_ls, 
+    #     num_lin_pieces=10)
+    
+    def euclidean_dist(x, x_prime):
+        return sqrt_approx.call(
+            x=sum(map(lambda x: x * x, map(operator.sub, x, x_prime))))
+        # return sum(map(lambda x: x * x, map(operator.sub, x, x_prime)))
+    
+    def Truthy(x, x_prime, epsilon):
+        return z3.If(
+            euclidean_dist(x, x_prime) <= z3.RealVal(epsilon),
+            True, False)
+    
+    x_prime = [1.0, 1.0]
+    
+    X, Y = NN(model)
+    
+    s = z3.Solver()
+    s.add(z3.ForAll(X, z3.Implies(Truthy(X, x_prime, 0.10), Y[0]>0.5)))
+    
+    if s.check() != sat:
+        print(s.check())
+
+
+def test_andy_4():
+
+    def sigmoid(x):
+        return 1 / (1 + np.exp(-x))
+    
+    sigmoid_approx =  approx.LinearSplines(
+        func=sigmoid, x_interval=(-5, 5), num_lin_pieces=10, 
+        cond_func=tf.where)
+    
+    # (point_2_x_ls, f_x_ls, xs, xs_approx, ys, 
+    #   y_approx_ls) = sigmoid_approx.get_computations()
+    # sigmoid_approx.plot(
+    #     point_2_x_ls=point_2_x_ls, f_x_ls=f_x_ls, xs=xs, 
+    #     xs_approx=xs_approx, ys=ys, 
+    #     y_approx_ls=y_approx_ls, 
+    #     num_lin_pieces=10)
+    
+    # Train network
+    x_train, y_train = mk_data(epsilon=0.25)
+    model = keras.Sequential([
+        keras.layers.Dense(1, activation=sigmoid_approx.call, input_shape=(2,)),
+    ])
+    model.compile(optimizer='adam',
+                  loss='binary_crossentropy',
+                  metrics=['accuracy'])
+    model.fit(x_train, y_train, epochs=15)
+    
+    
+    def euclidean_dist(x, x_prime):
+        return sum(map(lambda x: x * x, map(operator.sub, x, x_prime)))
+    
+    def Truthy(x, x_prime, epsilon):
+        return z3.If(
+            euclidean_dist(x, x_prime) <= z3.RealVal(epsilon),
+            True, False)
+    
+    x_prime = [1.0, 1.0]
+    
+    X, Y = NN(model)
+    
+    s = z3.Solver()
+    s.add(z3.ForAll(X, z3.Implies(Truthy(X, x_prime, 0.10), Y[0]>0.5)))
+    
+    if s.check() != sat:
+        print(s.check())
+    
     
 if __name__ == '__main__':
     test_andy()
     test_andy_2()
+    # test_andy_3()
+    # test_andy_4()
