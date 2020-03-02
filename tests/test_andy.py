@@ -64,7 +64,7 @@ def test_andy_1():
     model = mk_andy_model(epsilon=0.25)
 
     # Verify network
-    Epsilon = RealVal(0.2)
+    Epsilon = 0.2
 
     def Truthy(x):
         return And([1 - Epsilon <= x, x <= 1 + Epsilon])
@@ -95,21 +95,18 @@ def test_andy_2():
     model = mk_andy_model(epsilon=0.25)
 
     # Verify network
-    Epsilon = RealVal(0.2)
+    Epsilon = 0.1
 
     def Square(x):
         return x * x
 
-    def SquaredEuclideanDist(p1, p2):
-        return sum(map(Square, map(operator.sub, p1, p2)))
+    def SquaredEuclideanDist(X1, X2):
+        return sum(map(Square, map(operator.sub, X1, X2)))
 
     X, Y = NN(model)
 
     s = Solver()
     s.add(ForAll(X, Implies(SquaredEuclideanDist(X, (1.0, 1.0)) <= Epsilon, Y[0] > 0.5)))
-    s.add(ForAll(X, Implies(SquaredEuclideanDist(X, (0.0, 1.0)) <= Epsilon, Y[0] < 0.5)))
-    s.add(ForAll(X, Implies(SquaredEuclideanDist(X, (1.0, 0.0)) <= Epsilon, Y[0] < 0.5)))
-    s.add(ForAll(X, Implies(SquaredEuclideanDist(X, (0.0, 0.0)) <= Epsilon, Y[0] < 0.5)))
 
     assert s.check() == sat
 
