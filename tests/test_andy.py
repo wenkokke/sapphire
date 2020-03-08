@@ -74,7 +74,7 @@ def test_andy_1():
 
     X, Y = NN(model)
 
-    s = Solver()
+    s = SolverFor('LRA')
     s.add(ForAll(X, Implies(And([Truthy(X[0]), Truthy(X[1])]), Y[0] > 0.5)))
     s.add(ForAll(X, Implies(And([Falsey(X[0]), Truthy(X[1])]), Y[0] < 0.5)))
     s.add(ForAll(X, Implies(And([Truthy(X[0]), Falsey(X[1])]), Y[0] < 0.5)))
@@ -105,7 +105,7 @@ def test_andy_2():
 
     X, Y = NN(model)
 
-    s = Solver()
+    s = SolverFor('NRA')
     s.add(ForAll(X, Implies(SquaredEuclideanDist(X, (1.0, 1.0)) <= Epsilon, Y[0] > 0.5)))
 
     assert s.check() == sat
