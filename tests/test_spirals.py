@@ -8,7 +8,6 @@ import tensorflow.keras as keras
 from z3 import *
 from sapphire import *
 
-
 # Load the spirals data set from the 'data' directory.
 data = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data'))
 x_train = np.load(file=os.path.join(data, 'spirals_x_9.0.npy'))
@@ -57,4 +56,6 @@ def Eq(X1, X2):
 
 s = SolverFor('NRA')
 s.add(Implies(Eq(X, X_sample), SqEuclidianDist(Y, Y_sample) < Epsilon))
+#s.add(ForAll(X, Implies(SqEuclidianDist(X, X_sample) < RealVal(1.0),
+#                        SqEuclidianDist(Y, Y_sample) < RealVal(100.0))))
 print(s.check())

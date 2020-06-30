@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 import tensorflow as tf
 from z3 import *
 from sapphire import *
-from itertools import repeat
+from itertools import chain, repeat
 
 def and_gate_correctness_constraint(s, X, Y, inputs):
     s.add(Implies(
@@ -42,7 +42,7 @@ def and_gate(n, total):
 
 if __name__ == "__main__":
     filename_tpl = 'benchmarks/AND_Gate_{n}_Sigmoid_1.z3'
-    for n in range(100,1000,10):
+    for n in chain(range(2,100,1), range(100,1000,10), range(1000,10000,100)):
         with open(filename_tpl.format(n=n), 'w') as fp:
             fp.write(and_gate(n, total=1E9))
             fp.write('(check-sat)\n')
