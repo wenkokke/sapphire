@@ -52,7 +52,9 @@ def Sq(x):
 def SqEuclidianDist(X1, X2):
     return sum(Sq(x1 - x2) for x1, x2 in zip(X1, X2))
 
-s = SolverFor('LRA')
-s.add(ForAll(X, Implies(SqEuclidianDist(X, X_sample) < Epsilon,
-                        SqEuclidianDist(Y, Y_sample) < Epsilon)))
+def Eq(X1, X2):
+    return And([x1 == x2 for x1, x2 in zip(X1, X2)])
+
+s = SolverFor('NRA')
+s.add(Implies(Eq(X, X_sample), SqEuclidianDist(Y, Y_sample) < Epsilon))
 print(s.check())
