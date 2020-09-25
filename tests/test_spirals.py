@@ -56,6 +56,6 @@ def Eq(X1, X2):
 
 s = SolverFor('NRA')
 s.add(Implies(Eq(X, X_sample), SqEuclidianDist(Y, Y_sample) < Epsilon))
-#s.add(ForAll(X, Implies(SqEuclidianDist(X, X_sample) < RealVal(1.0),
-#                        SqEuclidianDist(Y, Y_sample) < RealVal(100.0))))
+# s.add(ForAll(X, Implies(SqEuclidianDist(X, X_sample) < RealVal(1.0),
+#                         SqEuclidianDist(Y, Y_sample) < RealVal(100.0))))
 print(s.check())

@@ -65,7 +65,7 @@ def test_andy_1():
 
     # Verify network
     Epsilon = 0.2
-
+    
     def Truthy(x):
         return And([1 - Epsilon <= x, x <= 1 + Epsilon])
 
@@ -73,13 +73,13 @@ def test_andy_1():
         return And([0 - Epsilon <= x, x <= 0 + Epsilon])
 
     X, Y = NN(model)
-
+    
     s = SolverFor('LRA')
     s.add(ForAll(X, Implies(And([Truthy(X[0]), Truthy(X[1])]), Y[0] > 0.5)))
     s.add(ForAll(X, Implies(And([Falsey(X[0]), Truthy(X[1])]), Y[0] < 0.5)))
     s.add(ForAll(X, Implies(And([Truthy(X[0]), Falsey(X[1])]), Y[0] < 0.5)))
     s.add(ForAll(X, Implies(And([Falsey(X[0]), Falsey(X[1])]), Y[0] < 0.5)))
-
+    
     assert s.check() == sat
 
 
