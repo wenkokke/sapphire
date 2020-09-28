@@ -66,7 +66,7 @@ class Autoencoder(tf.keras.Model):
 autoencoder = Autoencoder(latent_dim=latent_dim, output_shape=(28, 28))
 autoencoder.compile(
     optimizer='adam', loss='mean_squared_error')
-autoencoder.fit(x_train, x_train, epochs=10, batch_size=32)
+autoencoder.fit(x_train, x_train, epochs=1, batch_size=32)
 
 rand_ind = np.random.randint(
     low=0, high=x_train.shape[0], size=1)
@@ -144,35 +144,41 @@ eval_net.add(keras.layers.Dense(2, activation='softmax'))
 eval_net.compile(
     optimizer='adam', loss='sparse_categorical_crossentropy', 
     metrics=['accuracy'])
-eval_net.fit(x_train, y_train, epochs=10)
+eval_net.fit(x_train, y_train, epochs=1)
 test_loss, test_acc = eval_net.evaluate(x_test, y_test, verbose=2)
 
 #%% Verify network
-def InTangentSpace(x, t_Bx):
-    """
-    x and x_Bx are assumed to be column vectors.
-    """
-    variable_names = ['c_{}'.format(i) for i in range(1, t_Bx.shape[1]+1)]
-    print(variable_names)
-    # TODO: Manually change the  number of return variables:
-    # variables = Reals(' '.join(variable_names))
-    c_1, c_2, c_3 = Reals(' '.join(variable_names))
+# def InTangentSpace(x, t_Bx):
+#     """
+#     x and x_Bx are assumed to be column vectors.
+#     """
+#     variable_names = ['c_{}'.format(i) for i in range(1, t_Bx.shape[1]+1)]
+#     print(variable_names)
+#     # TODO: Manually change the  number of return variables:
+#     # variables = Reals(' '.join(variable_names))
+#     c_1, c_2, c_3 = Reals(' '.join(variable_names))
 
-    solver = Solver()
-    for i in range(t_Bx.shape[0]):
-        vars_and_coeffs = list(zip(t_Bx[i].tolist(), variable_names))
-        row = '+'.join([str(expr[0]) + '*' + (expr[1]) for expr in vars_and_coeffs])
-        row = row + '==' + str(x[i][0])
-        solver.add(eval(row))
+#     solver = Solver()
+#     for i in range(t_Bx.shape[0]):
+#         vars_and_coeffs = list(zip(t_Bx[i].tolist(), variable_names))
+#         row = '+'.join([str(expr[0]) + '*' + (expr[1]) for expr in vars_and_coeffs])
+#         row = row + '==' + str(x[i][0])
+#         solver.add(eval(row))
     
-    print(solver)
-    result = str(solver.check())
-    print(result)
-    if result == 'sat':
-        return True
-    else:
-        return False
+#     print(solver)
+#     result = str(solver.check())
+#     print(result)
+#     if result == 'sat':
+#         return True
+#     else:
+#         return False
     
+def InTangentSpace(X, T, salt=""):
+    # X is a "vector" of symbolic reals (using Python lists)
+    # T is a "matrix" of symbolic reals (using Python lists)
+    C = [Real('c_{}_{}'.format(i, salt)) for i in range(1, len(T[0]))]
+    return And([x == product([ci + ti for ci, ti in zip(C, t)]) for x, t in zip(X, T)])
+
 def sample_dataset(label):
     """Select a random sample with a particular label."""
     label_mask = (y_train == label).flatten()
@@ -186,14 +192,14 @@ y_sample = eval_net.predict(np.array([x_sample]))[0]
 X, Y = NN(eval_net)
 
 # BUG: b'parser error'
-x_sample = list(RealVal(x) for x in x_sample)
-y_sample = list(RealVal(y) for y in y_sample)
+x_sample = list(RealVal(x) for x in x_sample.flatten())
+y_sample = list(RealVal(y) for y in y_sample.flatten())
 
 def Eq(X1, X2):
     return And([x1 == x2 for x1, x2 in zip(X1, X2)])
 
 s = SolverFor('NRA')
-# BUG: wrong:
-# s.add(ForAll(And(X, InTangentSpace(x=, t_Bx=)), 
-#              Implies(Eq(X, X_sample), Y[0]>Y[1])))
+s.add(ForAll(And(X, InTangentSpace(x=, t_Bx=)), 
+              Implies(Eq(X, X_sample), Y[0]>Y[1])))
 print(s.check())
+
