@@ -201,5 +201,15 @@ def Eq(X1, X2):
 s = SolverFor('NRA')
 s.add(ForAll(And(X, InTangentSpace(x=, t_Bx=)), 
               Implies(Eq(X, X_sample), Y[0]>Y[1])))
+
+# t_Bx: list of lists
+# x_1: [1, 3, 4]
+# x_B(x_1): [[1, 3, 2], [3 ,5 , 2], [0, 1, 2]]
+
+# X: symbolic or list
+s.add(ForAll(X, Implies(InTangentSpace(x=X, t_Bx=...), )))
+
+
+
 print(s.check())
 
