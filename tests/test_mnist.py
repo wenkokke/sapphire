@@ -22,7 +22,7 @@ from sapphire import *
 #%% Set hyperparameters
 latent_dim = 64
 num_jacobians = 25
-top_r = 5
+top_r = 3
 
 #%% Functions
 
@@ -177,39 +177,19 @@ def InTangentSpace(X, T, salt=""):
     # X is a "vector" of symbolic reals (using Python lists)
     # T is a "matrix" of symbolic reals (using Python lists)
     C = [Real('c_{}_{}'.format(i, salt)) for i in range(1, len(T[0]))]
-    return And([x == product([ci + ti for ci, ti in zip(C, t)]) for x, t in zip(X, T)])
-
-def sample_dataset(label):
-    """Select a random sample with a particular label."""
-    label_mask = (y_train == label).flatten()
-    label_count = np.count_nonzero(label_mask)
-    return x_train[label_mask][
-        np.random.randint(low=0, high=label_count, size=1)][0]
-
-x_sample = sample_dataset(label=0)
-y_sample = eval_net.predict(np.array([x_sample]))[0]
-
-X, Y = NN(eval_net)
-
-# BUG: b'parser error'
-x_sample = list(RealVal(x) for x in x_sample.flatten())
-y_sample = list(RealVal(y) for y in y_sample.flatten())
+    return And([x == sum([ci * ti for ci, ti in zip(C, t)]) for x, t in zip(X, T)])
 
 def Eq(X1, X2):
     return And([x1 == x2 for x1, x2 in zip(X1, X2)])
 
-s = SolverFor('NRA')
-s.add(ForAll(And(X, InTangentSpace(x=, t_Bx=)), 
-              Implies(Eq(X, X_sample), Y[0]>Y[1])))
+X, Y = NN(eval_net)
 
-# t_Bx: list of lists
-# x_1: [1, 3, 4]
-# x_B(x_1): [[1, 3, 2], [3 ,5 , 2], [0, 1, 2]]
+x_sample = x_test[0].reshape((1, -1)).tolist()
+t_Bx_sample = tangent_basis[0:top_r].tolist()
+y_sample = [y_test[0]]
 
-# X: symbolic or list
-s.add(ForAll(X, Implies(InTangentSpace(x=X, t_Bx=...), )))
-
-
-
-print(s.check())
+s = SolverFor('LRA')
+s.add(Implies(InTangentSpace(X, t_Bx_sample), Not(Eq(Y, y_sample))))
+print(s.sexpr())
+s.check()
 
