@@ -35,7 +35,7 @@ def relu(x):
     
 def lintanh(x):
 	"""Linear approximation of the Hyperbolic Tangent function."""
-	return lin(math.tanh(x), -1.0, 1.0, 3, z3.If)
+	return lin(math.tanh, -1.0, 1.0, 3, z3.If)
 
 def lin(f, x_min, x_max, num=3, ite=None):
     """Approximates the function 'f' between 'x_min' and 'x_max' using 'num' line segments."""
