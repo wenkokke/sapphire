@@ -8,7 +8,8 @@ def activation(a, X):
         'linear'  : X,
         'relu'    : map(relu, X),
         'sigmoid' : map(linsigmoid, X),
-        'softmax' : linsoftmax(X)
+        'softmax' : linsoftmax(X),
+        'tanh'	  : lin(X,-1.0,1.0,3,None)
     }[a])
 
 def linexp(x):
