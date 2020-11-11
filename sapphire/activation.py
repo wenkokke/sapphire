@@ -31,7 +31,7 @@ def linsigmoid(x):
 
 def relu(x):
     """Rectified linear unit."""
-    return z3.z3.If(x > 0, x, 0)
+    return z3.If(x > 0, x, 0)
     
 def lintanh(x):
 	"""Linear approximation of the Hyperbolic Tangent function."""
