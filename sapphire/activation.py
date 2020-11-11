@@ -13,6 +13,9 @@ def activation(a, X):
         'tanh'	  : map(lintanh, X)
     }[a])
 
+"""Linear approximation of the Hyperbolic Tangent function."""
+lintanh = lin(math.tanh, -1.0, 1.0, 3, z3.If)
+
 def linexp(x):
     """Linear approximation of the exponential function."""
     return z3.If(x <= -1, 0.00001, z3.If(x >= 1, 5.898 * x - 3.898, x + 1))
@@ -32,10 +35,6 @@ def linsigmoid(x):
 def relu(x):
     """Rectified linear unit."""
     return z3.If(x > 0, x, 0)
-    
-def lintanh(x):
-	"""Linear approximation of the Hyperbolic Tangent function."""
-	return lin(math.tanh, -1.0, 1.0, 3, z3.If)
 
 def lin(f, x_min, x_max, num=3, ite=None):
     """Approximates the function 'f' between 'x_min' and 'x_max' using 'num' line segments."""
