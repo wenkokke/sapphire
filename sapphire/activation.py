@@ -1,6 +1,7 @@
 import operator
 import functools
 import numpy as np
+import math
 import z3
 
 def activation(a, X):
@@ -8,8 +9,12 @@ def activation(a, X):
         'linear'  : X,
         'relu'    : map(relu, X),
         'sigmoid' : map(linsigmoid, X),
-        'softmax' : linsoftmax(X)
+        'softmax' : linsoftmax(X),
+        'tanh'	  : map(lintanh, X)
     }[a])
+
+"""Linear approximation of the Hyperbolic Tangent function."""
+lintanh = lin(math.tanh, -1.0, 1.0, 3, z3.If)
 
 def linexp(x):
     """Linear approximation of the exponential function."""
@@ -29,7 +34,7 @@ def linsigmoid(x):
 
 def relu(x):
     """Rectified linear unit."""
-    return z3.z3.If(x > 0, x, 0)
+    return z3.If(x > 0, x, 0)
 
 def lin(f, x_min, x_max, num=3, ite=None):
     """Approximates the function 'f' between 'x_min' and 'x_max' using 'num' line segments."""
