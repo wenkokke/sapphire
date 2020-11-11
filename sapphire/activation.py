@@ -13,9 +13,6 @@ def activation(a, X):
         'tanh'	  : map(lintanh, X)
     }[a])
 
-"""Linear approximation of the Hyperbolic Tangent function."""
-lintanh = lin(math.tanh, -1.0, 1.0, 3, z3.If)
-
 def linexp(x):
     """Linear approximation of the exponential function."""
     return z3.If(x <= -1, 0.00001, z3.If(x >= 1, 5.898 * x - 3.898, x + 1))
@@ -82,3 +79,6 @@ def _ite(cond, iftrue, iffalse):
 def _revapp(x, f):
     """Python flipped function application as a method."""
     return f(x)
+
+"""Linear approximation of the Hyperbolic Tangent function."""
+lintanh = lin(math.tanh, -1.0, 1.0, 3, z3.If)
